@@ -1,4 +1,4 @@
-package com.codefactory.url_shortener.entity;
+package com.codefactory.urlshortener.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 @Table(name = "urls")
 public class Url {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private String id;
     @Column(nullable = false, length = 2048)
     private String originalUrl;

@@ -1,6 +1,6 @@
-package com.codefactory.url_shortener.repository;
+package com.codefactory.urlshortener.repository;
 
-import com.codefactory.url_shortener.entity.Url;
+import com.codefactory.urlshortener.entity.Url;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

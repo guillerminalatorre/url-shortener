@@ -1,9 +1,12 @@
 spring:
   application:
-    name: url-shortener
+    name: urlshortener
 
   profiles:
     active: dev
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     show-sql: true
@@ -12,6 +15,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+app:
+  url:
+    base: http://localhost:8080/
 
 logging:
   level:

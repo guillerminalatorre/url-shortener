@@ -1,4 +1,4 @@
-package com.codefactory.url_shortener.entity;
+package com.codefactory.urlshortener.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.sql.Date;
 
@@ -18,7 +19,7 @@ import java.sql.Date;
 @Table(name = "url_access_logs")
 public class UrlAccessLog {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)// TODO: use as ID the trace id from logging (not auto-generated)
     private String id;
     @CreationTimestamp
     private Date date;
