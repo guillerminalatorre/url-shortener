@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 @Entity
-@Table(name = "url")
+@Table(name = "urls")
 public class Url {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
