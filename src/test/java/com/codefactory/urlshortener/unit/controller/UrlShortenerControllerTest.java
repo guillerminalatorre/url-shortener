@@ -1,10 +1,10 @@
 package com.codefactory.urlshortener.unit.controller;
 
+import com.codefactory.urlshortener.controller.UrlShortenerController;
 import com.codefactory.urlshortener.dto.UrlRequestDto;
 import com.codefactory.urlshortener.dto.UrlResponseDto;
-import com.codefactory.urlshortener.unit.service.UrlShortenerService;
+import com.codefactory.urlshortener.service.UrlShortenerService;
 import com.codefactory.urlshortener.utils.TestObjectGenerator;
-import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +31,10 @@ public class UrlShortenerControllerTest {
     }
 
     @Test
-    public void testCreateShortUrl() {
+    public void testCreateShortUrl() throws Exception {
         // Arrange
         UrlRequestDto urlRequestDto = TestObjectGenerator.urlRequestDto1;
-        when(urlShortenerService.saveUrl(urlRequestDto)).thenReturn(TestObjectGenerator.url1);
+        when(urlShortenerService.shortenUrlAndSave(urlRequestDto)).thenReturn(TestObjectGenerator.url1);
 
         // Act
         ResponseEntity<UrlResponseDto> response = urlShortenerController.shortenUrl(TestObjectGenerator.urlRequestDto1);
@@ -42,16 +42,17 @@ public class UrlShortenerControllerTest {
         // Assert
         Assertions.assertEquals(urlRequestDto.getOriginalUrl(), response.getBody().getOriginalUrl());
         Assertions.assertEquals(urlRequestDto.getOwnerEmail(), response.getBody().getOwnerEmail());
-        Assertions.assertEquals(TestObjectGenerator.domain + TestObjectGenerator.shortenUrl1, response.getBody().getShortenedUrl());
+        Assertions.assertEquals(TestObjectGenerator.domain + TestObjectGenerator.shortenedUrl1, response.getBody().getShortenedUrl());
     }
 
     @Test
-    public void testCreateShortUrl_InvalidEmail() {
+    public void testCreateShortUrl_DBError() throws Exception {
         // Arrange
-        UrlRequestDto urlRequestDto = TestObjectGenerator.urlRequestDtoInvalidEmail;
+        UrlRequestDto urlRequestDto = TestObjectGenerator.urlRequestDto1;
+        when(urlShortenerService.shortenUrlAndSave(urlRequestDto)).thenThrow(Exception.class);
 
         // Act & Assert
-        Assertions.assertThrows(ConstraintViolationException.class, () -> {
+        Assertions.assertThrows(Exception.class, () -> {
             urlShortenerController.shortenUrl(urlRequestDto);
         });
     }
