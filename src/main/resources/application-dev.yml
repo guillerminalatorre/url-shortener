@@ -12,5 +12,9 @@ spring:
 
 logging:
   level:
+    org.springframework.web: DEBUG
+    org.springframework.http.converter.json: TRACE
+    com.fasterxml.jackson.databind: TRACE
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springdoc: DEBUG
