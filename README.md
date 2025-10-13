@@ -26,6 +26,7 @@ The API evaluates each endpoint in its workflow as follows:
 The application can be run locally using Docker Compose:
 
 ```bash
+mvn clean install
 docker-compose up --build
 ```
 
