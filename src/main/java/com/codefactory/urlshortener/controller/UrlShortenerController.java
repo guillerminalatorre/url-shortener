@@ -1,9 +1,9 @@
-package com.codefactory.urlshortener.controller;
+package com.codefactory.urlshortener.unit.controller;
 
 import com.codefactory.urlshortener.dto.UrlRequestDto;
 import com.codefactory.urlshortener.dto.UrlResponseDto;
 import com.codefactory.urlshortener.entity.Url;
-import com.codefactory.urlshortener.service.UrlShortenerService;
+import com.codefactory.urlshortener.unit.service.UrlShortenerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -48,7 +48,7 @@ public class UrlShortenerController {
     @PostMapping("/shorten")
     public ResponseEntity<UrlResponseDto> shortenUrl(@Valid @RequestBody UrlRequestDto urlRequestDto){
         Url url = urlShortenerService.saveUrl(urlRequestDto);
-        String shortenedUrl = domain + "/" + url.getId();
+        String shortenedUrl = domain + url.getId();
         return ResponseEntity.created(URI.create(shortenedUrl))
                 .body(UrlResponseDto.builder()
                         .shortenedUrl(shortenedUrl)
