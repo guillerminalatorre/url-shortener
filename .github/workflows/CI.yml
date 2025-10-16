@@ -51,4 +51,24 @@ jobs:
             exit 1
           fi
 
-          covered=$(xmllint --xpat
+          # Extraer valores numéricos seguros
+          covered=$(xmllint --xpath "string(sum(//counter[@type='LINE']/@covered))" "$xml" 2>/dev/null | tr -dc '0-9')
+          missed=$(xmllint --xpath "string(sum(//counter[@type='LINE']/@missed))" "$xml" 2>/dev/null | tr -dc '0-9')
+
+          # Validar valores
+          if [ -z "$covered" ] || [ -z "$missed" ]; then
+            echo "No se pudieron extraer valores de cobertura desde $xml"
+            exit 1
+          fi
+
+          total=$((covered + missed))
+          if [ "$total" -eq 0 ]; then
+            echo "Total de líneas = 0. No se puede calcular cobertura."
+            exit 1
+          fi
+
+          percent=$(awk "BEGIN {printf \"%.2f\", ($covered / $total) * 100}")
+          echo "Cobertura total: $percent%"
+
+          echo "coverage=$percent" >> $GITHUB_OUTPUT
+
