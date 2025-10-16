@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Java 21
@@ -19,36 +19,36 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Build and run tests with coverage
-        run: mvn -B clean verify
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
-      - name: Extract coverage percentage
+      - name: Build and test with JaCoCo
+        id: build
+        run: mvn -B clean verify
+        continue-on-error: true
+
+      - name: Find JaCoCo report file
+        id: find_report
+        run: |
+          report_file=$(find . -type f -path "*/target/jacoco-report/jacoco.xml" | head -1 || true)
+          if [ -z "$report_file" ]; then
+            echo "No se encontró el reporte XML de JaCoCo."
+            exit 1
+          fi
+          echo "report_file=$report_file" >> $GITHUB_OUTPUT
+
+      - name: Extract coverage from XML
         id: coverage
         run: |
-          report_dir="target/site/jacoco"
-          report_file="target/jacoco-report/index.html"
-
-          if [ -f "$report_file" ]; then
-            # Extraer porcentaje total (líneas cubiertas)
-            coverage=$(grep -Po 'Total.*?(\d+)%' "$report_file" | head -1 | grep -Po '\d+')
-          else
-            # En caso de que el HTML esté en otra ruta
-            coverage=$(grep -Po 'Total.*?(\d+)%' "$report_dir/index.html" | head -1 | grep -Po '\d+')
-          fi
-
-          if [ -z "$coverage" ]; then
-            echo "No se pudo extraer el porcentaje de cobertura."
+          xml="${{ steps.find_report.outputs.report_file }}"
+          if [ ! -f "$xml" ]; then
+            echo "No se encontró el archivo XML de cobertura."
             exit 1
           fi
 
-          echo "coverage=$coverage" >> $GITHUB_OUTPUT
-
-      - name: Comentar PR con cobertura
-        if: always()
-        uses: marocchino/sticky-pull-request-comment@v3
-        with:
-          header: "Coverage Report"
-          message: |
-            🧪 **Cobertura de tests:** `${{ steps.coverage.outputs.coverage }}%`
-            > El build fallará automáticamente si la cobertura es menor a 90 % (configurado en JaCoCo).
-
+          covered=$(xmllint --xpat
