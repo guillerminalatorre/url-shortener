@@ -7,6 +7,8 @@ import com.codefactory.urlshortener.integration.config.TestCacheConfig;
 import com.codefactory.urlshortener.repository.UrlAccessLogRepository;
 import com.codefactory.urlshortener.repository.UrlRepository;
 import com.codefactory.urlshortener.service.UrlShortenerService;
+import com.codefactory.urlshortener.shortener.Base32UrlHasher;
+import com.codefactory.urlshortener.shortener.UrlHasherFactory;
 import com.codefactory.urlshortener.utils.TestObjectGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
@@ -19,6 +21,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Optional;
 
@@ -27,7 +30,7 @@ import java.util.Optional;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Import(TestCacheConfig.class)
-public class UrlShortenerServiceIntegrationTest {
+public class UrlUrlHasherServiceIntegrationTest {
     @Autowired
     private UrlShortenerService urlShortenerService;
 
@@ -36,6 +39,12 @@ public class UrlShortenerServiceIntegrationTest {
 
     @Autowired
     private UrlRepository urlRepository;
+
+    @Autowired
+    private Base32UrlHasher base32UrlHasher;
+
+    @Autowired
+    private UrlHasherFactory urlHasherFactory;
 
     @Autowired
     private UrlAccessLogRepository urlAccessLogRepository;
@@ -50,7 +59,7 @@ public class UrlShortenerServiceIntegrationTest {
         Url saved = urlShortenerService.shortenUrlAndSave(dto);
 
         // Assert saved entity
-        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1, saved.getId());
+        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1Prefixed, saved.getId());
         Assertions.assertEquals(dto.getOwnerEmail(), saved.getOwnerEmail());
         Assertions.assertEquals(dto.getOriginalUrl(), saved.getOriginalUrl());
 
@@ -69,7 +78,7 @@ public class UrlShortenerServiceIntegrationTest {
 
     @Test
     @Order(2)
-    void whenSaveUrl_thenFindsItInCache() throws Exception {
+    void whenSaveUrl_thenFindsItDB() throws Exception {
         // Arrange
         UrlRequestDto dto = TestObjectGenerator.urlRequestDto1;
 
@@ -77,7 +86,7 @@ public class UrlShortenerServiceIntegrationTest {
         Url saved = urlShortenerService.shortenUrlAndSave(dto);
 
         // Assert saved entity
-        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1, saved.getId());
+        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1Prefixed, saved.getId());
         Assertions.assertEquals(dto.getOwnerEmail(), saved.getOwnerEmail());
         Assertions.assertEquals(dto.getOriginalUrl(), saved.getOriginalUrl());
 
@@ -93,18 +102,18 @@ public class UrlShortenerServiceIntegrationTest {
     @Order(3)
     void whenGetUrl_thenFindsItInCache() {
         // Act
-        Optional<Url> found = urlShortenerService.getUrlAndSaveUrlAccessLog(TestObjectGenerator.shortenedUrl1);
+        Optional<Url> found = urlShortenerService.getUrlAndSaveUrlAccessLog(TestObjectGenerator.shortenedUrl1Prefixed);
 
         // Assert found entity in Cache
         Assertions.assertTrue(found.isPresent());
-        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1, found.get().getId());
+        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1Prefixed, found.get().getId());
         Assertions.assertEquals(TestObjectGenerator.originalUrl1, found.get().getOriginalUrl());
         Assertions.assertEquals(TestObjectGenerator.email1, found.get().getOwnerEmail());
 
         // Assert saved entity in UrlAccessLog
         Optional<UrlAccessLog> savedLog = urlAccessLogRepository.findAll().stream().findFirst();
         Assertions.assertTrue(savedLog.isPresent());
-        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1, savedLog.get().getUrl().getId());
+        Assertions.assertEquals(TestObjectGenerator.shortenedUrl1Prefixed, savedLog.get().getUrl().getId());
     }
 
     @Test

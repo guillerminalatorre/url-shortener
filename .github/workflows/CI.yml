@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-coverage:
+    name: Build, Test & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build project
+        run: mvn clean install -B
+
+      - name: Run tests with coverage
+        run: mvn test jacoco:report -B
+
+      - name: Get coverage percentage
+        id: coverage
+        run: |
+          COVERAGE=$(xmllint --xpath "string(//counter[@type='INSTRUCTION']/@covered)" target/site/jacoco/jacoco.xml)
+          MISSED=$(xmllint --xpath "string(//counter[@type='INSTRUCTION']/@missed)" target/site/jacoco/jacoco.xml)
+          TOTAL=$((COVERAGE + MISSED))
+          PERCENTAGE=$((100 * COVERAGE / TOTAL))
+          echo "coverage=$PERCENTAGE" >> $GITHUB_OUTPUT
+
+      - name: Fail if coverage < 90%
+        if: ${{ steps.coverage.outputs.coverage < 90 }}
+        run: |
+          echo "Code coverage is below 90%: ${{ steps.coverage.outputs.coverage }}%"
+          exit 1
+
+      - name: Comment coverage on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          header: "Coverage Report"
+          message: "Current code coverage: ${{ steps.coverage.outputs.coverage }}%"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: target/site/jacoco/

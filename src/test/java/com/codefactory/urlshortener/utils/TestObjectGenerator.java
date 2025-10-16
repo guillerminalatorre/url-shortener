@@ -12,12 +12,14 @@ import java.util.UUID;
 public class TestObjectGenerator {
     public static final String domain = "http://localhost:8080/";
     public static final String controllerPath = "";
+    public static final String defaultPrefix = "A";
     public static final String email1 = "test@gmail.com";
     public static final String shortenedUrl1 = "vxm-2w"; // Real shortened URL for "http://example.com"
+    public static final String shortenedUrl1Prefixed = defaultPrefix + "-" + shortenedUrl1;
     public static final String originalUrl1 = "http://example.com";
 
     public static final Url url1 = Url.builder()
-            .id(shortenedUrl1)
+            .id(shortenedUrl1Prefixed)
             .originalUrl(originalUrl1)
             .ownerEmail(email1).build();
 

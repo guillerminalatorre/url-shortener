@@ -19,3 +19,10 @@ spring:
 
   cache:
     type: simple # Use simple in-memory cache for tests
+
+app:
+  url:
+    base: http://localhost:8080/
+    prefixes:
+      base32: "A"
+      default: ${app.url.prefixes.base32}

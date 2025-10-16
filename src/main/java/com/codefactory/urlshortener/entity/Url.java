@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class Url implements Serializable {
     @Id
     private String id;
-    @Column(nullable = false, length = 2048)
+    @Column(nullable = false, length = 2048, unique = true)
     private String originalUrl;
     @Column(nullable = false, length = 2048)
     private String ownerEmail;
