@@ -57,12 +57,21 @@ jobs:
         id: coverage
         run: |
           xml="${{ steps.find_report.outputs.report_file }}"
-          covered=$(xmllint --xpath "string(sum(//counter[@type='LINE']/@covered))" "$xml" 2>/dev/null | tr -dc '0-9')
-          missed=$(xmllint --xpath "string(sum(//counter[@type='LINE']/@missed))" "$xml" 2>/dev/null | tr -dc '0-9')
-          if [ -z "$covered" ] || [ -z "$missed" ]; then
-            echo "No se pudieron extraer valores de cobertura desde $xml"
+          if [ ! -f "$xml" ]; then
+            echo "No se encontró el archivo $xml"
             exit 1
           fi
+
+          covered=$(grep '<counter type="LINE"' "$xml" | sed -E 's/.*covered="([0-9]+)".*/\1/' | awk '{sum+=$1} END {print sum}')
+          missed=$(grep '<counter type="LINE"' "$xml" | sed -E 's/.*missed="([0-9]+)".*/\1/' | awk '{sum+=$1} END {print sum}')
+
+          if [ -z "$covered" ] || [ -z "$missed" ]; then
+            echo "No se pudieron extraer valores de cobertura desde $xml"
+            echo "Contenido parcial:"
+            head -n 20 "$xml"
+            exit 1
+          fi
+
           total=$((covered + missed))
           percent=$(awk "BEGIN {printf \"%.2f\", ($covered / $total) * 100}")
           echo "Cobertura total: $percent%"
