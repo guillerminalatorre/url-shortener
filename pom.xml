@@ -194,6 +194,7 @@
                                 </fileSet>
                             </fileSets>
                             <destFile>${project.build.directory}/jacoco-merged.exec</destFile>
+                            <destFile>${project.build.directory}/jacoco-merged.xml</destFile>
                         </configuration>
                     </execution>
 
