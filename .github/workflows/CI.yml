@@ -33,7 +33,11 @@ jobs:
       - name: Generate XML report from merged exec
         run: |
           if [ -f target/jacoco-merged.exec ]; then
-            mvn jacoco:report -Djacoco.dataFile=target/jacoco-merged.exec -Djacoco.reportFormats=XML
+            mvn jacoco:report \
+              -Djacoco.dataFile=target/jacoco-merged.exec \
+              -Djacoco.reportFormats=XML \
+              -Djacoco.classFiles=target/classes \
+              -Djacoco.sourceFiles=src/main/java
           else
             echo "No se encontró target/jacoco-merged.exec"
             exit 1
@@ -64,8 +68,8 @@ jobs:
           echo "Cobertura total: $percent%"
           echo "coverage=$percent" >> $GITHUB_OUTPUT
 
-      - name: Comment PR with coverage
-        if: always()
+      - name: Comment PR with coverage (internal PRs only)
+        if: github.event.pull_request.head.repo.full_name == github.repository
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: "Coverage Report"
