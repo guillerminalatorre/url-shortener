@@ -35,6 +35,9 @@ springdoc:
 app:
   url:
     base: http://localhost:8080/
+    prefixes:
+      base32: "A"
+      default: ${app.url.prefixes.base32}
 
 logging:
   level:

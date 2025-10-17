@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = UrlShortenerController.class)
-class UrlShortenerControllerIntegrationTest {
+class UrlHasherControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -60,7 +60,7 @@ class UrlShortenerControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.shortenedUrl").value(TestObjectGenerator.domain + TestObjectGenerator.shortenedUrl1))
+                .andExpect(jsonPath("$.shortenedUrl").value(TestObjectGenerator.domain + TestObjectGenerator.shortenedUrl1Prefixed))
                 .andExpect(jsonPath("$.originalUrl").value(TestObjectGenerator.originalUrl1))
                 .andExpect(jsonPath("$.ownerEmail").value(TestObjectGenerator.email1));
     }

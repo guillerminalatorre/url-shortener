@@ -1,0 +1,71 @@
+name: PR Build & Coverage Check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Cache Maven repo
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-maven-
+
+      # 👇 Ejecuta todas las fases configuradas en tu pom.xml:
+      # unit tests, integration tests, merge, report y check (<90% falla)
+      - name: Build & test with JaCoCo (merged report + check)
+        id: build
+        run: mvn -B clean verify
+
+      # 👇 Extrae el % de cobertura desde el XML mergeado (ya generado por el pom)
+      - name: Extract coverage percentage
+        id: coverage
+        run: |
+          xml="target/jacoco-report/jacoco.xml"
+          if [ ! -f "$xml" ]; then
+            echo "❌ No se encontró el archivo $xml"
+            exit 1
+          fi
+
+          covered=$(grep '<counter type="LINE"' "$xml" | sed -E 's/.*covered="([0-9]+)".*/\1/' | awk '{sum+=$1} END {print sum}')
+          missed=$(grep '<counter type="LINE"' "$xml" | sed -E 's/.*missed="([0-9]+)".*/\1/' | awk '{sum+=$1} END {print sum}')
+          if [ -z "$covered" ] || [ -z "$missed" ]; then
+            echo "❌ No se pudieron extraer valores de cobertura desde $xml"
+            head -n 20 "$xml"
+            exit 1
+          fi
+          total=$((covered + missed))
+          percent=$(awk "BEGIN {printf \"%.2f\", ($covered / $total) * 100}")
+          echo "Cobertura total (merged): $percent%"
+          echo "coverage=$percent" >> $GITHUB_OUTPUT
+
+      # 👇 Comenta el PR con el coverage (solo si el repo es del mismo owner)
+      - name: Comment PR with coverage
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: "Coverage Report"
+          message: |
+            🧪 **Cobertura total (merged):** `${{ steps.coverage.outputs.coverage }}%`
+            🔍 *El build fallará automáticamente si la cobertura es menor a 90% (regla de JaCoCo).*
+
+      # 👇 Falla el workflow si mvn verify falló (por cobertura u otro error)
+      - name: Fail if JaCoCo check failed
+        if: steps.build.outcome == 'failure'
+        run: |
+          echo "❌ Falló el chequeo de cobertura (JaCoCo < 90%) o el build"
+          exit 1

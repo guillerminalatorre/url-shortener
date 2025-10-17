@@ -18,7 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UrlShortenerControllerTest {
+public class UrlHasherControllerTest {
     @Mock
     private UrlShortenerService urlShortenerService;
 
@@ -42,7 +42,7 @@ public class UrlShortenerControllerTest {
         // Assert
         Assertions.assertEquals(urlRequestDto.getOriginalUrl(), response.getBody().getOriginalUrl());
         Assertions.assertEquals(urlRequestDto.getOwnerEmail(), response.getBody().getOwnerEmail());
-        Assertions.assertEquals(TestObjectGenerator.domain + TestObjectGenerator.shortenedUrl1, response.getBody().getShortenedUrl());
+        Assertions.assertEquals(TestObjectGenerator.domain + TestObjectGenerator.shortenedUrl1Prefixed, response.getBody().getShortenedUrl());
     }
 
     @Test
